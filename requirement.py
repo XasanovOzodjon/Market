@@ -2,3 +2,8 @@ asgiref==3.11.1
 Django==5.2.12
 python-decouple==3.8
 sqlparse==0.5.5
+asgiref==3.11.1
+Django==5.2.12
+djangorestframework==3.16.1
+python-decouple==3.8
+sqlparse==0.5.5
