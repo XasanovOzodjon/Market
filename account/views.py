@@ -4,12 +4,15 @@ from rest_framework import status
 from redis import Redis
 from uuid import uuid4
 import json
-from .servise import create_user, get_tokens_for_user
-from .models import CustomUser
+
+from rest_framework.permissions import AllowAny
+from .serializer import GetUIDSerializer
 
 from rest_framework.views import APIView
 
 class TelegramAuth(APIView):
+    serializer_class = GetUIDSerializer
+    permission_classes = [AllowAny]
     def get(self, request: Request) -> Response:
         redis = Redis(host='localhost', port=6379, db=0)
         unicID = str(uuid4())
@@ -23,8 +26,11 @@ class TelegramAuth(APIView):
         
     def post(self, request: Request) -> Response:
         redis = Redis(host='localhost', port=6379, db=0)
-        data = request.data
-        unicID = data.get("unicID")
+        data = self.serializer_class(data=request.data)
+        if not data.is_valid():
+            return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        unicID = request.data.get("unicID")
 
         if not unicID:
             return Response({"error": "unicID is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -44,41 +50,4 @@ class TelegramAuth(APIView):
         else:
             return Response({"error": "invalid unicID or time end"}, status=status.HTTP_400_BAD_REQUEST)
 
-class TelegramVerificationView(APIView):
-    
-        
-    def post(self, request: Request) -> Response:
-        data = request.data
-        unicID = data.get("unicID")
-        
-        redis = Redis(host='localhost', port=6379, db=0)
-        
-        
-        
-        
-        if redis.exists(unicID):
-            redis_data = redis.get(unicID)
-
-            if redis_data:
-                data = json.loads(redis_data.decode())
-            else:
-                return Response({"error": "invalid"})
-            redis.delete(unicID)
-            
-            user = CustomUser.objects.filter(telegram_id=data['telegram_id']).first()
-            
-            if not user:
-                user = create_user(data=data)
-                
-            tokens = json.dumps(get_tokens_for_user(user=user))
-            
-            redis.set(unicID, tokens, ex=900)
-            
-            return Response({"status": "secusful"}, status=201)
-
-            
-            
-            
-            
-        else:
-            return Response({"status": "error", "message": "Invalid or expired unicID"}, status=400)
+       

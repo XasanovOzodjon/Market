@@ -2,15 +2,14 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from redis import Redis
 import json
-from uuid import uuid4
-from requests import post
+from account.servise import create_user, get_tokens_for_user
+from user.models import CustomUser
 
 from decouple import config
+import os
+import django
 
-from uuid import uuid4
-import json
-from redis import Redis
-from requests import post
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -50,16 +49,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "photo_url": photo_url,
     }
 
-    redis.set(start_param, json.dumps(data), ex=900)
-
-    data = post("http://localhost:8000/api/auth/verify-tg/", json={"unicID": start_param})
+        
+    user = CustomUser.objects.filter(telegram_id=data['telegram_id']).first()
     
-    if data.status_code == 201:
-        await update.message.reply_text("go to site")
+    if not user:
+        user = create_user(data=data)
+        
+    tokens = json.dumps(get_tokens_for_user(user=user))
+    
+    redis.set(start_param, tokens, ex=900)
 
-    else:
-        await update.message.reply_text(f"{data.status_code} error")
-        return
+    await update.message.reply_text("go to site")
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
 
 app = ApplicationBuilder().token(config("BOT_TOKEN")).build()
 

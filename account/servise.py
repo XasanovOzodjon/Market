@@ -1,4 +1,4 @@
-from .models import CustomUser
+from user.models import CustomUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
