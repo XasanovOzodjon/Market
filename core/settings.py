@@ -44,7 +44,14 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 
 # CORS sozlamalari - Frontend URL larni qabul qilish
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL] if FRONTEND_URL else ['http://localhost:8000']
+CORS_ALLOWED_ORIGINS = [
+    'http://market.khasanoff.uz',
+    'https://market.khasanoff.uz',
+    'http://www.market.khasanoff.uz',
+    'https://www.market.khasanoff.uz',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 SITE_URL_LIST = config('SITE_URL', default='http://localhost:8000', cast=Csv())
 SITE_URL = SITE_URL_LIST[0] if SITE_URL_LIST else 'http://localhost:8000'
@@ -211,7 +218,35 @@ GOOGLE_USER_INFO_URL=config('GOOGLE_USER_INFO_URI')
 GOOGLE_CLIENT_SECRET=config('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT_URL=config('GOOGLE_REDIRECT_URL')
 
-# CORS sozlamalari (old configuration removed, now using FRONTEND_URL above)
-# Development uchun - production da False qiling
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # DEBUG=False bo'lsa CORS_ALLOWED_ORIGINS ishlatiladi
+# CORS sozlamalari
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CSRF trusted origins - Nginx reverse proxy uchun kerak
+CSRF_TRUSTED_ORIGINS = [
+    'http://market.khasanoff.uz',
+    'https://market.khasanoff.uz',
+    'http://www.market.khasanoff.uz',
+    'https://www.market.khasanoff.uz',
+]
