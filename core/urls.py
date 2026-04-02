@@ -19,15 +19,25 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import HomeView, SellerView, AuthView
+from apps.adminPanel.views import AdminDashboard
+
 
 urlpatterns = [
+    path('', HomeView.as_view(), name='home'),
+    path('seller/', SellerView.as_view(), name='seller'),
+    path('auth/', AuthView.as_view(), name='auth'),
     path('admin/', admin.site.urls),
+    path('admin-dashboard/', AdminDashboard.as_view(), name='admin-dashboard'),
+
     path('api/v1/auth/', include('account.urls')),
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/v1/', include('adminPanel.urls')),
     path('api/v1/', include('product.urls')),
     path('api/v1/', include('orders.urls')),
     path('api/v1/', include('user.urls')),
+    path('api/v1/', include('reviews.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

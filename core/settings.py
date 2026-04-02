@@ -10,13 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 import os
+import sys
 from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# apps papkasini Python path ga qo'shish
+sys.path.insert(0, str(BASE_DIR / 'apps'))
+
+
+TELEGRAM_BOT_TOKEN = config('BOT_TOKEN')
+TELEGRAM_ADMINS = config('TELEGRAM_ADMINS', cast=Csv())
+IP = config('IP', default='127.0.0.1')
+
+# Backend va Frontend URL sozlamalari
+BACKEND_URL = config('BACKEND_URL', default='http://127.0.0.1:8000')
+FRONTEND_URL = config('FRONTEND_URL', default='http://127.0.0.1:8000')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -29,6 +42,12 @@ DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
+
+# CORS sozlamalari - Frontend URL larni qabul qilish
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL] if FRONTEND_URL else ['http://localhost:8000']
+
+SITE_URL_LIST = config('SITE_URL', default='http://localhost:8000', cast=Csv())
+SITE_URL = SITE_URL_LIST[0] if SITE_URL_LIST else 'http://localhost:8000'
 
 # Application definition
 
@@ -44,14 +63,18 @@ INSTALLED_APPS = [
     'product',
     'orders',
     'user',
-    
+    'reviews',
+    'adminPanel',
+
     "drf_spectacular",
     'rest_framework_simplejwt',
     'rest_framework',
-    "django_filters"
+    "django_filters",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,7 +89,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -159,10 +182,36 @@ REST_FRAMEWORK = {
     
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+}
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your Project API',
+    'TITLE': 'Go 2 Link(g2l) API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    # OTHER SETTINGS
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "ozodjon.pro@gmail.com"
+EMAIL_HOST_PASSWORD = "glcu xezs djxd rsba"
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+GOOGLE_CLIENT_ID=config('GOOGLE_CLIENT_ID')
+GOOGLE_PROJECT_ID=config('GOOGLE_PROJECT_ID')
+GOOGLE_TOKEN_URL=config('GOOGLE_TOKEN_URI')
+GOOGLE_USER_INFO_URL=config('GOOGLE_USER_INFO_URI')
+GOOGLE_CLIENT_SECRET=config('GOOGLE_CLIENT_SECRET')
+GOOGLE_REDIRECT_URL=config('GOOGLE_REDIRECT_URL')
+
+# CORS sozlamalari (old configuration removed, now using FRONTEND_URL above)
+# Development uchun - production da False qiling
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # DEBUG=False bo'lsa CORS_ALLOWED_ORIGINS ishlatiladi
+CORS_ALLOW_CREDENTIALS = True

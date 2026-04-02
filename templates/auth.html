@@ -1,0 +1,875 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market — Kirish / Ro'yxatdan o'tish</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* ── Split layout ── */
+        .auth-page {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* ── Left — Hero ── */
+        .auth-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 48px;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+        }
+        .auth-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,.06) 0%, transparent 50%);
+        }
+        .auth-hero__content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 440px;
+        }
+        .auth-hero__logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 32px;
+            text-decoration: none;
+            color: #fff;
+        }
+        .auth-hero__logo i {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(255,255,255,.15);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+        .auth-hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+        .auth-hero p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            opacity: .85;
+            margin-bottom: 40px;
+        }
+        .auth-hero__features {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .auth-hero__feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: .95rem;
+            opacity: .9;
+        }
+        .auth-hero__feature i {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .9rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Right — Form Panel ── */
+        .auth-panel {
+            width: 520px;
+            min-width: 420px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 48px;
+            background: #fff;
+            position: relative;
+        }
+        .auth-panel__inner {
+            width: 100%;
+            max-width: 400px;
+        }
+        .auth-panel__header {
+            margin-bottom: 32px;
+        }
+        .auth-panel__header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text, #1e293b);
+            margin: 0 0 6px;
+        }
+        .auth-panel__header p {
+            font-size: .9rem;
+            color: var(--text-secondary, #64748b);
+            margin: 0;
+        }
+
+        /* ── Tabs ── */
+        .auth-tabs {
+            display: flex;
+            background: var(--bg, #f1f5f9);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .auth-tabs button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: .92rem;
+            font-weight: 600;
+            color: var(--text-secondary, #64748b);
+            cursor: pointer;
+            transition: all .25s;
+        }
+        .auth-tabs button.active {
+            background: #fff;
+            color: var(--primary, #4f46e5);
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+
+        /* ── Form ── */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .auth-form[style*="display:none"],
+        .auth-form[style*="display: none"] {
+            display: none !important;
+        }
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .auth-field label {
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--text, #1e293b);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .auth-field label i {
+            color: var(--text-secondary, #64748b);
+            font-size: .82rem;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--border, #e2e8f0);
+            border-radius: 10px;
+            font-size: .95rem;
+            color: var(--text, #1e293b);
+            background: #fff;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+        .auth-input:focus {
+            border-color: var(--primary, #4f46e5);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, .1);
+        }
+        .auth-input::placeholder {
+            color: #cbd5e1;
+        }
+        .auth-input-group {
+            position: relative;
+        }
+        .auth-input-group .auth-input {
+            padding-right: 46px;
+        }
+        .auth-input-group .toggle-pass {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: .95rem;
+            padding: 4px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .auth-btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(102, 126, 234, .35);
+        }
+        .auth-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, .45);
+        }
+        .auth-btn-primary:active {
+            transform: translateY(0);
+        }
+        .auth-btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, .3);
+        }
+        .auth-btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, .4);
+        }
+        .auth-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ── Google button ── */
+        .auth-btn-google {
+            background: #fff;
+            color: var(--text, #1e293b);
+            border: 2px solid var(--border, #e2e8f0);
+            box-shadow: none;
+            font-weight: 500;
+        }
+        .auth-btn-google:hover {
+            background: var(--bg, #f1f5f9);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .auth-btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ── Divider ── */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary, #64748b);
+            font-size: .82rem;
+            margin: 4px 0;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border, #e2e8f0);
+        }
+
+        /* ── PIN Section ── */
+        .pin-info {
+            background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(5,150,105,.04));
+            border: 1px solid rgba(16,185,129,.2);
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .pin-info i {
+            color: var(--success, #10b981);
+            font-size: 1.3rem;
+            margin-top: 2px;
+        }
+        .pin-info div {
+            font-size: .88rem;
+            line-height: 1.5;
+            color: var(--text, #1e293b);
+        }
+        .pin-info strong {
+            color: var(--success-dark, #059669);
+        }
+
+        /* ── Footer link ── */
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: .88rem;
+            color: var(--text-secondary, #64748b);
+        }
+        .auth-footer a {
+            color: var(--primary, #4f46e5);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Toast (override style.css) ── */
+        .auth-page .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            bottom: auto;
+            left: auto;
+            z-index: 9999;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: .9rem;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(0,0,0,.15);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all .3s;
+            pointer-events: none;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-page .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .auth-page .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .auth-page .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .auth-page .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .auth-page .toast i {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* ── PIN step animation ── */
+        #pinStep {
+            animation: fadeInUp .4s ease;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 960px) {
+            .auth-hero { display: none; }
+            .auth-panel {
+                width: 100%;
+                min-width: unset;
+                min-height: 100vh;
+                background: linear-gradient(180deg, #f8fafc 0%, #fff 30%);
+            }
+            .auth-panel__inner {
+                max-width: 440px;
+            }
+        }
+        @media (max-width: 480px) {
+            .auth-panel { padding: 32px 20px; }
+            .auth-hero__content h1 { font-size: 1.6rem; }
+        }
+
+        /* ── Loading spinner ── */
+        .auth-btn .spinner-sm {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            display: none;
+        }
+        .auth-btn.loading .spinner-sm { display: inline-block; }
+        .auth-btn.loading span { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="auth-page">
+    <!-- ═══════════════ LEFT — HERO ═══════════════ -->
+    <div class="auth-hero">
+        <div class="auth-hero__content">
+            <a href="/" class="auth-hero__logo">
+                <i class="fas fa-store"></i> Market
+            </a>
+            <h1>Onlayn bozorga xush kelibsiz!</h1>
+            <p>Minglab mahsulotlar, ishonchli sotuvchilar va qulay xaridlar — barchasi bir joyda.</p>
+            <div class="auth-hero__features">
+                <div class="auth-hero__feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Xavfsiz to'lov va ma'lumotlar himoyasi</span>
+                </div>
+                <div class="auth-hero__feature">
+                    <i class="fas fa-truck"></i>
+                    <span>Tezkor yetkazib berish xizmati</span>
+                </div>
+                <div class="auth-hero__feature">
+                    <i class="fas fa-tags"></i>
+                    <span>Eng yaxshi narxlar va chegirmalar</span>
+                </div>
+                <div class="auth-hero__feature">
+                    <i class="fas fa-headset"></i>
+                    <span>24/7 qo'llab-quvvatlash xizmati</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ RIGHT — FORM ═══════════════ -->
+    <div class="auth-panel">
+        <div class="auth-panel__inner">
+
+            <!-- Header -->
+            <div class="auth-panel__header" id="authHeader">
+                <h2>Tizimga kirish</h2>
+                <p>Hisobingizga kirish uchun ma'lumotlarni kiriting</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="active" id="tabLogin" onclick="switchTab('login')">
+                    <i class="fas fa-sign-in-alt"></i> Kirish
+                </button>
+                <button id="tabRegister" onclick="switchTab('register')">
+                    <i class="fas fa-user-plus"></i> Ro'yxatdan o'tish
+                </button>
+            </div>
+
+            <!-- ═══ LOGIN FORM ═══ -->
+            <form id="loginForm" class="auth-form" onsubmit="authLogin(event)">
+                <div class="auth-field">
+                    <label><i class="fas fa-user"></i> Username</label>
+                    <input type="text" class="auth-input" id="loginUsername" required placeholder="Foydalanuvchi nomi" autocomplete="username">
+                </div>
+                <div class="auth-field">
+                    <label><i class="fas fa-lock"></i> Parol</label>
+                    <div class="auth-input-group">
+                        <input type="password" class="auth-input" id="loginPassword" required placeholder="Parolingiz" autocomplete="current-password">
+                        <button type="button" class="toggle-pass" onclick="togglePassword('loginPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn auth-btn-primary" id="loginBtn">
+                    <div class="spinner-sm"></div>
+                    <span><i class="fas fa-arrow-right"></i> Kirish</span>
+                </button>
+
+                <div class="auth-divider">yoki</div>
+
+                <button type="button" class="auth-btn auth-btn-google" onclick="googleAuth()">
+                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    Google orqali kirish
+                </button>
+
+                <div class="auth-footer">
+                    Hisobingiz yo'qmi? <a href="javascript:void(0)" onclick="switchTab('register')">Ro'yxatdan o'ting</a>
+                </div>
+            </form>
+
+            <!-- ═══ REGISTER FORM ═══ -->
+            <form id="registerForm" class="auth-form" style="display:none" onsubmit="authRegister(event)">
+                <div class="auth-field">
+                    <label><i class="fas fa-user"></i> Username</label>
+                    <input type="text" class="auth-input" id="regUsername" required placeholder="Foydalanuvchi nomi" minlength="3" autocomplete="username">
+                </div>
+                <div class="auth-field">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" class="auth-input" id="regEmail" required placeholder="email@example.com" autocomplete="email">
+                </div>
+                <div class="auth-field">
+                    <label><i class="fas fa-lock"></i> Parol</label>
+                    <div class="auth-input-group">
+                        <input type="password" class="auth-input" id="regPassword" required placeholder="Kamida 6 belgi" minlength="6" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" onclick="togglePassword('regPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label><i class="fas fa-lock"></i> Parolni tasdiqlash</label>
+                    <div class="auth-input-group">
+                        <input type="password" class="auth-input" id="regConfirmPassword" required placeholder="Parolni takrorlang" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" onclick="togglePassword('regConfirmPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn auth-btn-primary" id="regBtn">
+                    <div class="spinner-sm"></div>
+                    <span><i class="fas fa-user-plus"></i> Ro'yxatdan o'tish</span>
+                </button>
+
+                <div class="auth-footer">
+                    Hisobingiz bormi? <a href="javascript:void(0)" onclick="switchTab('login')">Tizimga kiring</a>
+                </div>
+            </form>
+
+            <!-- ═══ PIN VERIFICATION STEP (separate screen) ═══ -->
+            <div id="pinStep" class="auth-form" style="display:none">
+                <div style="text-align:center;margin-bottom:8px;">
+                    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.08));display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                        <i class="fas fa-envelope-open-text" style="font-size:1.8rem;color:#10b981;"></i>
+                    </div>
+                    <h3 style="margin:0 0 6px;font-size:1.25rem;font-weight:700;color:var(--text,#1e293b);">Emailni tasdiqlang</h3>
+                    <p style="margin:0;font-size:.88rem;color:var(--text-secondary,#64748b);line-height:1.6;">
+                        <strong id="pinEmailDisplay" style="color:var(--primary,#4f46e5);"></strong> manziliga<br>
+                        6 xonali PIN kod yuborildi.
+                    </p>
+                </div>
+
+                <div class="pin-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        Spam papkasini ham tekshiring. PIN kod <strong>5 daqiqa</strong> ichida amal qiladi.
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label><i class="fas fa-key"></i> PIN kod</label>
+                    <input type="number" class="auth-input" id="regPincode" placeholder="6 xonali PIN" style="text-align:center;font-size:1.4rem;letter-spacing:8px;font-weight:700;padding:16px;">
+                </div>
+
+                <button type="button" class="auth-btn auth-btn-success" id="pinBtn" onclick="authPinCheck()">
+                    <div class="spinner-sm"></div>
+                    <span><i class="fas fa-check-circle"></i> Tasdiqlash</span>
+                </button>
+
+                <div class="auth-footer" style="margin-top:16px;">
+                    <a href="javascript:void(0)" onclick="switchTab('register')"><i class="fas fa-arrow-left"></i> Orqaga qaytish</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+</div>
+
+<!-- Config: Backend URL -->
+<script>
+    window.APP_CONFIG = {
+        BACKEND_URL: "{{ BACKEND_URL }}"
+    };
+</script>
+
+<script src="{% static 'js/api.js' %}?v=4"></script>
+<script>
+/* ═══════════════════════════════════════════
+   AUTH PAGE — Standalone Logic
+   ═══════════════════════════════════════════ */
+
+var regUid = null;
+
+// ── Check if already logged in ──
+(async function () {
+    var token = getAccessToken();
+    if (token) {
+        // Token bor — lekin haqiqiy ishlayaptimi tekshiramiz
+        try {
+            var res = await fetch("/api/v1/users/me", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (res.ok) {
+                // Token yaroqli — foydalanuvchi allaqachon login qilgan
+                window.location.href = "/";
+                return;
+            }
+        } catch (e) { /* ignore */ }
+        // Token yaroqsiz — tozalab auth sahifada qolamiz
+        clearTokens();
+    }
+    // Google callback
+    var params = new URLSearchParams(window.location.search);
+    if (params.get("google_auth") === "success") {
+        var access = params.get("access");
+        var refresh = params.get("refresh");
+        if (access && refresh) {
+            setTokens(access, refresh);
+            window.location.href = "/";
+        }
+    } else if (params.get("error")) {
+        setTimeout(function () {
+            showToast("Google auth xatolik: " + params.get("error"), "error");
+        }, 300);
+        window.history.replaceState({}, document.title, "/auth/");
+    }
+    // Auto-open register if ?tab=register
+    if (params.get("tab") === "register") {
+        setTimeout(function () { switchTab("register"); }, 100);
+    }
+})();
+
+// ── Tab switching ──
+function switchTab(tab) {
+    var tabL = document.getElementById("tabLogin");
+    var tabR = document.getElementById("tabRegister");
+    var formL = document.getElementById("loginForm");
+    var formR = document.getElementById("registerForm");
+    var pinStep = document.getElementById("pinStep");
+    var header = document.getElementById("authHeader");
+    var tabs = document.querySelector(".auth-tabs");
+
+    // Always show tabs and header when switching
+    tabs.style.display = "flex";
+    header.style.display = "block";
+
+    tabL.classList.toggle("active", tab === "login");
+    tabR.classList.toggle("active", tab === "register");
+    formL.style.display = tab === "login" ? "flex" : "none";
+    formR.style.display = tab === "register" ? "flex" : "none";
+    pinStep.style.display = "none";
+
+    if (tab === "login") {
+        header.innerHTML = '<h2>Tizimga kirish</h2><p>Hisobingizga kirish uchun ma\'lumotlarni kiriting</p>';
+    } else {
+        header.innerHTML = '<h2>Ro\'yxatdan o\'tish</h2><p>Yangi hisob yarating va bozorga qo\'shiling</p>';
+    }
+
+    // Reset pin state
+    regUid = null;
+    var regBtn = document.getElementById("regBtn");
+    if (regBtn) {
+        regBtn.style.display = "";
+        regBtn.classList.remove("loading");
+        regBtn.disabled = false;
+    }
+}
+
+// ── Show PIN step as separate screen ──
+function showPinStep(email) {
+    var formR = document.getElementById("registerForm");
+    var pinStep = document.getElementById("pinStep");
+    var header = document.getElementById("authHeader");
+    var tabs = document.querySelector(".auth-tabs");
+
+    // Hide everything else
+    formR.style.display = "none";
+    document.getElementById("loginForm").style.display = "none";
+    tabs.style.display = "none";
+
+    // Update header for PIN step
+    header.innerHTML = '<h2>Email tasdiqlash</h2><p>Ro\'yxatdan o\'tishni yakunlang</p>';
+
+    // Show email in PIN step
+    var emailDisplay = document.getElementById("pinEmailDisplay");
+    if (emailDisplay && email) emailDisplay.textContent = email;
+
+    // Show PIN step
+    pinStep.style.display = "flex";
+
+    // Focus PIN input
+    setTimeout(function () {
+        document.getElementById("regPincode").focus();
+    }, 400);
+}
+
+// ── Toggle password ──
+function togglePassword(inputId, btn) {
+    var inp = document.getElementById(inputId);
+    var icon = btn.querySelector("i");
+    if (inp.type === "password") {
+        inp.type = "text";
+        icon.classList.replace("fa-eye", "fa-eye-slash");
+    } else {
+        inp.type = "password";
+        icon.classList.replace("fa-eye-slash", "fa-eye");
+    }
+}
+
+// ── Login ──
+async function authLogin(e) {
+    e.preventDefault();
+    var btn = document.getElementById("loginBtn");
+    btn.classList.add("loading");
+    btn.disabled = true;
+
+    var username = document.getElementById("loginUsername").value.trim();
+    var password = document.getElementById("loginPassword").value;
+
+    try {
+        var res = await api.post("/auth/login/", { username: username, password: password });
+        if (res.ok) {
+            var data = await res.json();
+            setTokens(data.access, data.refresh);
+            showToast("Muvaffaqiyatli kirdingiz!", "success");
+            setTimeout(function () {
+                // Check role and redirect
+                redirectAfterAuth();
+            }, 600);
+        } else {
+            var err = await res.json();
+            showToast(err.detail || "Username yoki parol noto'g'ri!", "error");
+        }
+    } catch (ex) {
+        showToast("Server bilan bog'lanib bo'lmadi", "error");
+    } finally {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+    }
+}
+
+// ── Register ──
+async function authRegister(e) {
+    e.preventDefault();
+    if (regUid) return; // already sent
+
+    var btn = document.getElementById("regBtn");
+    btn.classList.add("loading");
+    btn.disabled = true;
+
+    var username = document.getElementById("regUsername").value.trim();
+    var email = document.getElementById("regEmail").value.trim();
+    var password = document.getElementById("regPassword").value;
+    var conform_password = document.getElementById("regConfirmPassword").value;
+
+    if (password !== conform_password) {
+        showToast("Parollar mos kelmaydi!", "error");
+        btn.classList.remove("loading");
+        btn.disabled = false;
+        return;
+    }
+
+    try {
+        var res = await api.post("/auth/registar/", {
+            username: username,
+            password: password,
+            conform_password: conform_password,
+            email: email
+        });
+        var data = await res.json();
+        if (res.ok) {
+            regUid = data.uid;
+            showPinStep(email);
+            showToast("Emailingizga PIN kod yuborildi!", "success");
+        } else {
+            var msg = data.message || "";
+            if (!msg && typeof data === "object") {
+                Object.keys(data).forEach(function (key) {
+                    msg += key + ": " + data[key] + " ";
+                });
+            }
+            showToast(msg || "Xatolik yuz berdi", "error");
+        }
+    } catch (ex) {
+        showToast("Server bilan bog'lanib bo'lmadi", "error");
+    } finally {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+    }
+}
+
+// ── PIN Check ──
+async function authPinCheck() {
+    var pincode = parseInt(document.getElementById("regPincode").value);
+    if (!regUid || !pincode) {
+        showToast("PIN kodni kiriting", "error");
+        return;
+    }
+
+    var btn = document.getElementById("pinBtn");
+    btn.classList.add("loading");
+    btn.disabled = true;
+
+    try {
+        var res = await api.post("/auth/emailcheck/", { uid: regUid, pincode: pincode });
+        if (res.ok) {
+            var data = await res.json();
+            setTokens(data.access, data.refresh);
+            regUid = null;
+            showToast("Ro'yxatdan muvaffaqiyatli o'tdingiz!", "success");
+            setTimeout(function () {
+                redirectAfterAuth();
+            }, 600);
+        } else {
+            var err = await res.json();
+            showToast(err.message || "PIN kod noto'g'ri", "error");
+        }
+    } catch (ex) {
+        showToast("Server bilan bog'lanib bo'lmadi", "error");
+    } finally {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+    }
+}
+
+// ── Google auth redirect ──
+function googleAuth() {
+    window.location.href = API_BASE + "/auth/google/";
+}
+
+// ── Redirect after auth ──
+async function redirectAfterAuth() {
+    try {
+        var user = await api.get("/users/me");
+        if (user && user.role === "seller") {
+            window.location.href = "/seller/";
+        } else {
+            window.location.href = "/";
+        }
+    } catch (e) {
+        window.location.href = "/";
+    }
+}
+
+// ── Toast ──
+function showToast(msg, type) {
+    var t = document.getElementById("toast");
+    var icons = {
+        success: '<i class="fas fa-check-circle"></i> ',
+        error: '<i class="fas fa-exclamation-circle"></i> ',
+        info: '<i class="fas fa-info-circle"></i> '
+    };
+    t.innerHTML = (icons[type] || icons.info) + msg;
+    t.className = "toast " + (type || "info") + " show";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () {
+        t.classList.remove("show");
+    }, 3500);
+}
+</script>
+</body>
+</html>

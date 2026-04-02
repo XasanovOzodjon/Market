@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market — Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c3ce0;
+            --primary-dark: #4a1db5;
+            --primary-light: rgba(108,60,224,.1);
+            --bg: #f0f2f8;
+            --bg-card: #fff;
+            --border: #e5e7eb;
+            --text: #1a1a2e;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --sidebar-w: 260px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: linear-gradient(160deg, #6c3ce0 0%, #3b1fa8 60%, #2a1580 100%);
+            position: fixed; top: 0; left: 0; height: 100vh;
+            display: flex; flex-direction: column;
+            box-shadow: 4px 0 24px rgba(108,60,224,.2);
+            z-index: 100; transition: transform .3s ease;
+        }
+        .sidebar-brand { padding: 24px 20px 18px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .sidebar-brand__logo { display: flex; align-items: center; gap: 12px; }
+        .sidebar-brand__icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: rgba(255,255,255,.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: #fff;
+        }
+        .sidebar-brand__text h2 { font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+        .sidebar-brand__text span { font-size: .7rem; color: rgba(255,255,255,.5); font-weight: 500; text-transform: uppercase; letter-spacing: .8px; }
+
+        .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+        .nav-section-title { font-size: .65rem; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,.35); font-weight: 600; padding: 12px 12px 6px; }
+        .nav-item { list-style: none; margin-bottom: 2px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 10px;
+            color: rgba(255,255,255,.65); text-decoration: none;
+            font-size: .88rem; font-weight: 500;
+            cursor: pointer; transition: all .2s; border: none;
+            background: transparent; width: 100%; text-align: left;
+        }
+        .nav-link:hover { background: rgba(255,255,255,.1); color: #fff; }
+        .nav-link.active { background: rgba(255,255,255,.18); color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .nav-link i { width: 18px; text-align: center; font-size: .95rem; }
+        .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: .65rem; font-weight: 700; padding: 2px 7px; border-radius: 99px; min-width: 20px; text-align: center; }
+        .nav-badge.green { background: var(--success); }
+
+        .sidebar-footer { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,.1); }
+        .sidebar-footer a { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.5); text-decoration: none; font-size: .82rem; transition: color .2s; cursor: pointer; }
+        .sidebar-footer a:hover { color: #fff; }
+
+        /* ── MAIN ── */
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; }
+        .topbar {
+            background: #fff; padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title h1 { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+        .topbar-title p { font-size: .78rem; color: var(--text-secondary); margin-top: 1px; }
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+        .topbar-btn {
+            width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border);
+            background: #fff; display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); cursor: pointer; font-size: .95rem; transition: all .2s;
+        }
+        .topbar-btn:hover { background: var(--bg); color: var(--primary); border-color: var(--primary); }
+        .admin-chip { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: var(--bg); border-radius: 99px; cursor: pointer; }
+        .admin-chip__avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #6c3ce0, #4a1db5); color: #fff; font-size: .8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .admin-chip__name { font-size: .82rem; font-weight: 600; color: var(--text); }
+
+        .content { padding: 24px 28px; }
+
+        /* ── STATS ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-bottom: 24px; }
+        .stat-card { background: #fff; border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); border: 1px solid var(--border); transition: transform .2s, box-shadow .2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.07); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .stat-icon.purple { background: rgba(108,60,224,.1); color: #6c3ce0; }
+        .stat-icon.green  { background: rgba(16,185,129,.1); color: #10b981; }
+        .stat-icon.blue   { background: rgba(59,130,246,.1); color: #3b82f6; }
+        .stat-icon.red    { background: rgba(239,68,68,.1);  color: #ef4444; }
+        .stat-info h3 { font-size: 1.65rem; font-weight: 800; color: var(--text); line-height: 1; }
+        .stat-info p  { font-size: .78rem; color: var(--text-secondary); margin-top: 4px; }
+
+        /* ── PANEL ── */
+        .panel { background: #fff; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
+        .panel-head { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .panel-head h2 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .panel-head h2 i { color: var(--primary); font-size: .95rem; }
+
+        /* ── TABLE ── */
+        .data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+        .data-table th { padding: 11px 18px; text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .7px; color: var(--text-secondary); font-weight: 600; background: #f8f9fc; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 13px 18px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: #fafbff; }
+
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #6c3ce0, #4a1db5); color: #fff; font-size: .82rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-avatar.green  { background: linear-gradient(135deg, #10b981, #059669); }
+        .user-avatar.blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .user-avatar.orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .user-avatar.red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .user-name { font-weight: 600; color: var(--text); font-size: .875rem; }
+        .user-email { font-size: .75rem; color: var(--text-secondary); margin-top: 1px; }
+
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+        .badge-seller   { background: rgba(108,60,224,.1); color: #6c3ce0; }
+        .badge-customer { background: rgba(59,130,246,.1); color: #3b82f6; }
+        .badge-admin    { background: rgba(239,68,68,.1);  color: #ef4444; }
+        .badge-active   { background: rgba(16,185,129,.1); color: #10b981; }
+
+        .action-btns { display: flex; gap: 6px; }
+        .action-btn { width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; font-size: .82rem; cursor: pointer; transition: all .2s; }
+        .action-btn.promote { background: rgba(108,60,224,.1); color: #6c3ce0; }
+        .action-btn.promote:hover { background: #6c3ce0; color: #fff; }
+        .action-btn.demote  { background: rgba(239,68,68,.1); color: #ef4444; }
+        .action-btn.demote:hover  { background: #ef4444; color: #fff; }
+
+        /* ── GRID ── */
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+        /* ── QUICK ACTIONS ── */
+        .quick-actions { padding: 16px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .quick-action-btn { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: #fff; cursor: pointer; text-align: left; font-size: .82rem; font-weight: 600; color: var(--text); transition: all .2s; }
+        .quick-action-btn:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+        .quick-action-btn i { font-size: 1rem; color: var(--primary); width: 20px; text-align: center; }
+
+        /* ── ACTIVITY ── */
+        .activity-list { list-style: none; }
+        .activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 22px; border-bottom: 1px solid #f0f2f5; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-dot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; }
+        .activity-dot.purple { background: rgba(108,60,224,.1); color: #6c3ce0; }
+        .activity-dot.green  { background: rgba(16,185,129,.1); color: #10b981; }
+        .activity-dot.red    { background: rgba(239,68,68,.1); color: #ef4444; }
+        .activity-text strong { font-size: .875rem; font-weight: 600; color: var(--text); }
+        .activity-time { font-size: .72rem; color: var(--text-secondary); margin-top: 3px; }
+
+        /* ── TOOLBAR ── */
+        .table-toolbar { padding: 14px 22px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .search-box { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 8px 12px; flex: 1; max-width: 280px; }
+        .search-box i { color: var(--text-secondary); font-size: .85rem; }
+        .search-box input { border: none; background: transparent; outline: none; font-size: .85rem; color: var(--text); width: 100%; }
+        .filter-select { padding: 8px 12px; border-radius: 9px; border: 1px solid var(--border); background: #fff; font-size: .82rem; color: var(--text); cursor: pointer; outline: none; }
+        .filter-select:focus { border-color: var(--primary); }
+        .btn-sm { padding: 8px 14px; border-radius: 9px; font-size: .82rem; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .2s; }
+        .btn-primary-sm { background: var(--primary); color: #fff; }
+        .btn-primary-sm:hover { background: var(--primary-dark); }
+
+        /* ── PAGE SECTIONS ── */
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        /* ── FORM ── */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        .form-control { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border); font-size: .88rem; color: var(--text); outline: none; transition: border-color .2s; background: #fff; font-family: inherit; }
+        .form-control:focus { border-color: var(--primary); }
+        textarea.form-control { resize: vertical; }
+        .btn-block { width: 100%; padding: 12px; border-radius: 10px; font-size: .9rem; font-weight: 700; border: none; cursor: pointer; }
+        .btn-purple { background: linear-gradient(135deg, #6c3ce0, #4a1db5); color: #fff; transition: opacity .2s; }
+        .btn-purple:hover { opacity: .9; }
+        .btn-red { background: #fee2e2; color: #ef4444; transition: background .2s; }
+        .btn-red:hover { background: #fecaca; }
+
+        /* ── MODAL ── */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.15); animation: modalIn .2s ease; text-align: center; }
+        @keyframes modalIn { from { opacity:0; transform:scale(.95) translateY(10px); } to { opacity:1; transform:none; } }
+        .confirm-icon { font-size: 2.8rem; margin-bottom: 12px; }
+        .modal-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+        .modal-box p  { font-size: .875rem; color: var(--text-secondary); }
+        .confirm-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .confirm-btns button { flex: 1; padding: 11px; border-radius: 10px; font-size: .875rem; font-weight: 600; border: none; cursor: pointer; }
+        .btn-cancel { background: var(--bg); color: var(--text); }
+        .btn-cancel:hover { background: #e4e6ef; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+
+        /* ── TOAST ── */
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 999; padding: 14px 20px; border-radius: 12px; font-size: .875rem; font-weight: 600; color: #fff; display: none; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 240px; }
+        .toast.show { display: flex; animation: slideUp .25s ease; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        .toast.success { background: #10b981; }
+        .toast.error   { background: #ef4444; }
+        .toast.info    { background: #3b82f6; }
+
+        /* ── EMPTY / LOADER ── */
+        .empty-state { padding: 48px 24px; text-align: center; color: var(--text-secondary); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: .35; display: block; }
+        .loader { display: flex; justify-content: center; padding: 40px; }
+        .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--primary); animation: spin .7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MOBILE ── */
+        .mobile-toggle { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 200; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #6c3ce0, #4a1db5); color: #fff; border: none; font-size: 1.3rem; box-shadow: 0 4px 16px rgba(108,60,224,.4); cursor: pointer; align-items: center; justify-content: center; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .topbar { padding: 0 16px; }
+            .content { padding: 16px; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .mobile-toggle { display: flex; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div style="display:flex">
+
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand__logo">
+                <div class="sidebar-brand__icon"><i class="fas fa-shield-halved"></i></div>
+                <div class="sidebar-brand__text">
+                    <h2>Market</h2>
+                    <span>Admin Panel</span>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="nav-section-title">Asosiy</p>
+            <ul style="list-style:none">
+                <li class="nav-item">
+                    <button class="nav-link active" onclick="showPage('dashboard', this)">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showPage('users', this)">
+                        <i class="fas fa-users"></i> Foydalanuvchilar
+                        <span class="nav-badge" id="badge-users">—</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showPage('sellers', this)">
+                        <i class="fas fa-store"></i> Sotuvchilar
+                        <span class="nav-badge green" id="badge-sellers">—</span>
+                    </button>
+                </li>
+            </ul>
+            <p class="nav-section-title" style="margin-top:8px">Sozlamalar</p>
+            <ul style="list-style:none">
+                <li class="nav-item">
+                    <button class="nav-link" onclick="showPage('promote', this)">
+                        <i class="fas fa-user-plus"></i> Sotuvchi boshqaruvi
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fas fa-arrow-left"></i> Bosh sahifaga</a>
+        </div>
+    </aside>
+
+    <!-- ══════════ MAIN ══════════ -->
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="topbar-title">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p id="pageSubtitle">Umumiy statistika</p>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="topbar-btn" title="Yangilash" onclick="refreshPage()">
+                    <i class="fas fa-rotate-right"></i>
+                </button>
+                <div class="admin-chip">
+                    <div class="admin-chip__avatar" id="adminAvatar">A</div>
+                    <span class="admin-chip__name" id="adminName">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- ════ DASHBOARD ════ -->
+            <div class="page-section active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                        <div class="stat-info"><h3 id="statUsers">—</h3><p>Jami foydalanuvchilar</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-store"></i></div>
+                        <div class="stat-info"><h3 id="statSellers">—</h3><p>Sotuvchilar</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-user-check"></i></div>
+                        <div class="stat-info"><h3 id="statCustomers">—</h3><p>Xaridorlar</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fas fa-user-shield"></i></div>
+                        <div class="stat-info"><h3 id="statAdmins">—</h3><p>Adminlar</p></div>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-store"></i> Sotuvchilar ro'yxati</h2>
+                            <button class="btn-sm btn-primary-sm" onclick="showPage('sellers', document.querySelectorAll('.nav-link')[2])">
+                                <i class="fas fa-arrow-right"></i> Barchasi
+                            </button>
+                        </div>
+                        <div id="dashSellersBody">
+                            <div class="loader"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="panel" style="margin-bottom:20px">
+                            <div class="panel-head"><h2><i class="fas fa-bolt"></i> Tezkor amallar</h2></div>
+                            <div class="quick-actions">
+                                <button class="quick-action-btn" onclick="showPage('promote', document.querySelectorAll('.nav-link')[3])">
+                                    <i class="fas fa-user-plus"></i> Sotuvchi qo'shish
+                                </button>
+                                <button class="quick-action-btn" onclick="showPage('users', document.querySelectorAll('.nav-link')[1])">
+                                    <i class="fas fa-users"></i> Foydalanuvchilar
+                                </button>
+                                <button class="quick-action-btn" onclick="refreshPage()">
+                                    <i class="fas fa-sync"></i> Yangilash
+                                </button>
+                                <button class="quick-action-btn" onclick="location.href='/'">
+                                    <i class="fas fa-home"></i> Bosh sahifa
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-head"><h2><i class="fas fa-clock"></i> So'nggi amallar</h2></div>
+                            <ul class="activity-list" id="activityList">
+                                <li style="padding:16px 22px;font-size:.82rem;color:var(--text-secondary)">
+                                    <i class="fas fa-info-circle"></i> Hozircha faoliyat yo'q
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ════ USERS ════ -->
+            <div class="page-section" id="page-users">
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2><i class="fas fa-users"></i> Barcha foydalanuvchilar</h2>
+                    </div>
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="userSearch" placeholder="Username yoki email..." oninput="filterUsers()">
+                        </div>
+                        <select class="filter-select" id="roleFilter" onchange="filterUsers()">
+                            <option value="">Barcha rollar</option>
+                            <option value="customer">Xaridor</option>
+                            <option value="seller">Sotuvchi</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Foydalanuvchi</th>
+                                    <th>Username</th>
+                                    <th>Rol</th>
+                                    <th>Holat</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="6" style="text-align:center;padding:32px">
+                                    <div class="loader"><div class="spinner"></div></div>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ════ SELLERS ════ -->
+            <div class="page-section" id="page-sellers">
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2><i class="fas fa-store"></i> Sotuvchilar</h2>
+                    </div>
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="sellerSearch" placeholder="Sotuvchi qidirish..." oninput="filterSellers()">
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Sotuvchi</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sellersTableBody">
+                                <tr><td colspan="5" style="text-align:center;padding:32px">
+                                    <div class="loader"><div class="spinner"></div></div>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ════ PROMOTE ════ -->
+            <div class="page-section" id="page-promote">
+                <div style="max-width:560px;margin:0 auto">
+                    <div class="panel" style="margin-bottom:20px">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-user-plus"></i> Sotuvchi qo'shish</h2>
+                        </div>
+                        <div style="padding:24px">
+                            <div class="form-group">
+                                <label><i class="fas fa-id-badge" style="color:var(--primary)"></i> &nbsp;Foydalanuvchi ID</label>
+                                <input type="number" class="form-control" id="promoteUserId" placeholder="masalan: 5" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-store" style="color:var(--primary)"></i> &nbsp;Do'kon nomi</label>
+                                <input type="text" class="form-control" id="shopName" placeholder="masalan: Ozod's Electronics">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-align-left" style="color:var(--primary)"></i> &nbsp;Do'kon tavsifi</label>
+                                <textarea class="form-control" id="shopDescription" placeholder="Do'kon haqida qisqacha..." rows="3"></textarea>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> &nbsp;Viloyat</label>
+                                    <input type="text" class="form-control" id="region" placeholder="Toshkent">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-pin" style="color:var(--primary)"></i> &nbsp;Tuman</label>
+                                    <input type="text" class="form-control" id="district" placeholder="Chilonzor">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-home" style="color:var(--primary)"></i> &nbsp;Manzil</label>
+                                <input type="text" class="form-control" id="address" placeholder="Ko'cha, uy raqami">
+                            </div>
+                            <button class="btn-block btn-purple" onclick="handlePromote()">
+                                <i class="fas fa-user-plus"></i> &nbsp; Sotuvchiga aylantirish
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-user-minus" style="color:var(--danger)"></i> Sotuvchidan olish</h2>
+                        </div>
+                        <div style="padding:24px">
+                            <div class="form-group">
+                                <label><i class="fas fa-id-badge" style="color:var(--danger)"></i> &nbsp;Foydalanuvchi ID</label>
+                                <input type="number" class="form-control" id="demoteUserId" placeholder="masalan: 5" min="1">
+                            </div>
+                            <button class="btn-block btn-red" onclick="handleDemote()">
+                                <i class="fas fa-user-minus"></i> &nbsp; Sotuvchidan olish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- ══════════ CONFIRM MODAL ══════════ -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <div class="confirm-icon">⚠️</div>
+        <h3>Ishonchingiz kommi?</h3>
+        <p id="confirmText">Bu foydalanuvchini sotuvchidan olmoqchimisiz?</p>
+        <div class="confirm-btns">
+            <button class="btn-cancel" onclick="closeConfirm()">Bekor qilish</button>
+            <button class="btn-danger" id="confirmOkBtn">Ha, olish</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ── CONFIG ──
+    const API_URL = '/api/v1/add-seller/';
+
+    // ── STATE ──
+    let allUsers = [];
+    let activityLog = [];
+    const avatarColors = ['', 'green', 'blue', 'orange', 'red'];
+
+    // ── AUTH ──
+    function getToken() {
+        return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+    }
+    function authHeaders() {
+        const t = getToken();
+        return { 'Content-Type': 'application/json', ...(t ? { 'Authorization': `Bearer ${t}` } : {}) };
+    }
+
+// ── INIT ──  ← ESKIsini o'chiring, BU ni qo'ying
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // 1. Token umuman bormi?
+    const token = getToken();
+    if (!token) {
+        window.location.href = '/auth/';
+        return;
+    }
+
+    // 2. Token valid va admin huquqi bormi? (API orqali tekshirish)
+    try {
+        const res = await fetch(API_URL, { headers: authHeaders() });
+
+        if (res.status === 401) {
+            // Token eskirgan yoki noto'g'ri
+            localStorage.removeItem('access_token');
+            sessionStorage.removeItem('access_token');
+            window.location.href = '/auth/';
+            return;
+        }
+        if (res.status === 403) {
+            // Token to'g'ri, lekin admin emas (oddiy user)
+            window.location.href = '/';
+            return;
+        }
+        if (!res.ok) throw new Error(`Server xatosi: ${res.status}`);
+
+        // 3. Hammasi yaxshi — sahifani yuklash
+        const data = await res.json();
+        allUsers = data.Users || [];
+
+        const username = localStorage.getItem('username') || 'Admin';
+        document.getElementById('adminName').textContent = username;
+        document.getElementById('adminAvatar').textContent = username[0].toUpperCase();
+
+        updateStats();
+        renderDashSellers();
+        renderUsersTable();
+        renderSellersTable();
+
+    } catch (e) {
+        showToast('Yuklashda xatolik: ' + e.message, 'error');
+    }
+});
+
+    // ── LOAD USERS ──
+    async function loadUsers() {
+        try {
+            const res = await fetch(API_URL, { headers: authHeaders() });
+            if (!res.ok) throw new Error(`Server xatosi: ${res.status}`);
+            const data = await res.json();
+            allUsers = data.Users || [];
+            updateStats();
+            renderDashSellers();
+            renderUsersTable();
+            renderSellersTable();
+        } catch (e) {
+            showToast('Yuklashda xatolik: ' + e.message, 'error');
+        }
+    }
+
+    // ── STATS ──
+    function updateStats() {
+        const sellers   = allUsers.filter(u => u.role === 'seller');
+        const customers = allUsers.filter(u => u.role === 'customer');
+        const admins    = allUsers.filter(u => u.role === 'admin' || u.is_staff);
+        document.getElementById('statUsers').textContent     = allUsers.length;
+        document.getElementById('statSellers').textContent   = sellers.length;
+        document.getElementById('statCustomers').textContent = customers.length;
+        document.getElementById('statAdmins').textContent    = admins.length;
+        document.getElementById('badge-users').textContent   = allUsers.length;
+        document.getElementById('badge-sellers').textContent = sellers.length;
+    }
+
+    // ── DASH SELLERS ──
+    function renderDashSellers() {
+        const sellers = allUsers.filter(u => u.role === 'seller').slice(0, 6);
+        const el = document.getElementById('dashSellersBody');
+        if (!sellers.length) {
+            el.innerHTML = `<div class="empty-state"><i class="fas fa-store"></i><p>Sotuvchi yo'q</p></div>`;
+            return;
+        }
+        el.innerHTML = `
+            <table class="data-table">
+                <thead><tr><th>Sotuvchi</th><th>Email</th><th>Amal</th></tr></thead>
+                <tbody>${sellers.map(u => `
+                    <tr>
+                        <td><div class="user-cell">
+                            <div class="user-avatar ${rndColor(u.id)}">${initials(u.username)}</div>
+                            <span class="user-name">${esc(u.username)}</span>
+                        </div></td>
+                        <td style="font-size:.8rem;color:var(--text-secondary)">${esc(u.email || '—')}</td>
+                        <td>
+                            <button class="action-btn demote" title="Sotuvchidan olish"
+                                onclick="confirmDemote(${u.id}, '${esc(u.username)}')">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
+    }
+
+    // ── USERS TABLE ──
+    function renderUsersTable(list) {
+        const users = list !== undefined ? list : allUsers;
+        const tbody = document.getElementById('usersTableBody');
+        if (!users.length) {
+            tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>Topilmadi</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = users.map((u, i) => `
+            <tr>
+                <td style="font-weight:600;color:var(--text-secondary);font-size:.8rem">${i + 1}</td>
+                <td><div class="user-cell">
+                    <div class="user-avatar ${rndColor(u.id)}">${initials(u.username)}</div>
+                    <div>
+                        <div class="user-name">${esc(u.username)}</div>
+                        <div class="user-email">${esc(u.email || '—')}</div>
+                    </div>
+                </div></td>
+                <td style="font-family:monospace;font-size:.82rem">@${esc(u.username)}</td>
+                <td>${roleBadge(u.role, u.is_staff)}</td>
+                <td><span class="badge badge-active"><i class="fas fa-circle" style="font-size:.5rem"></i> Faol</span></td>
+                <td><div class="action-btns">
+                    ${u.role !== 'seller' && !u.is_staff ? `
+                        <button class="action-btn promote" title="Sotuvchiga aylantirish"
+                            onclick="quickPromote(${u.id}, '${esc(u.username)}')">
+                            <i class="fas fa-user-plus"></i>
+                        </button>` : ''}
+                    ${u.role === 'seller' ? `
+                        <button class="action-btn demote" title="Sotuvchidan olish"
+                            onclick="confirmDemote(${u.id}, '${esc(u.username)}')">
+                            <i class="fas fa-user-minus"></i>
+                        </button>` : ''}
+                </div></td>
+            </tr>`).join('');
+    }
+
+    // ── SELLERS TABLE ──
+    function renderSellersTable(list) {
+        const sellers = (list !== undefined ? list : allUsers).filter(u => u.role === 'seller');
+        const tbody = document.getElementById('sellersTableBody');
+        if (!sellers.length) {
+            tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-store"></i><p>Sotuvchi yo'q</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = sellers.map((u, i) => `
+            <tr>
+                <td style="font-weight:600;color:var(--text-secondary);font-size:.8rem">${i + 1}</td>
+                <td><div class="user-cell">
+                    <div class="user-avatar green">${initials(u.username)}</div>
+                    <span class="user-name">${esc(u.username)}</span>
+                </div></td>
+                <td style="font-family:monospace;font-size:.82rem">@${esc(u.username)}</td>
+                <td style="font-size:.82rem;color:var(--text-secondary)">${esc(u.email || '—')}</td>
+                <td>
+                    <button class="action-btn demote" title="Sotuvchidan olish"
+                        onclick="confirmDemote(${u.id}, '${esc(u.username)}')">
+                        <i class="fas fa-user-minus"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
+    }
+
+    // ── FILTERS ──
+    function filterUsers() {
+        const q    = document.getElementById('userSearch').value.toLowerCase();
+        const role = document.getElementById('roleFilter').value;
+        renderUsersTable(allUsers.filter(u => {
+            const matchQ = !q || u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+            const matchR = !role || u.role === role || (role === 'admin' && u.is_staff);
+            return matchQ && matchR;
+        }));
+    }
+    function filterSellers() {
+        const q = document.getElementById('sellerSearch').value.toLowerCase();
+        renderSellersTable(allUsers.filter(u =>
+            u.role === 'seller' && (!q || u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))
+        ));
+    }
+
+    // ── PROMOTE ──
+    async function handlePromote() {
+        const id   = parseInt(document.getElementById('promoteUserId').value);
+        const shop = document.getElementById('shopName').value.trim();
+        if (!id)   { showToast('Foydalanuvchi ID kiriting!', 'error'); return; }
+        if (!shop) { showToast("Do'kon nomini kiriting!", 'error'); return; }
+
+        await doAction('promote', id, {
+            shop_name:        shop,
+            shop_description: document.getElementById('shopDescription').value.trim(),
+            region:           document.getElementById('region').value.trim(),
+            district:         document.getElementById('district').value.trim(),
+            address:          document.getElementById('address').value.trim(),
+        });
+        // formani tozalash
+        ['promoteUserId','shopName','shopDescription','region','district','address']
+            .forEach(id => document.getElementById(id).value = '');
+    }
+
+    async function quickPromote(id, name) {
+        if (!confirm(`"${name}"ni sotuvchiga aylantirmoqchimisiz?`)) return;
+        await doAction('promote', id, { shop_name: `${name}'s Shop` });
+    }
+
+    // ── DEMOTE ──
+    let pendingDemoteId = null;
+
+    function confirmDemote(id, name) {
+        pendingDemoteId = id;
+        document.getElementById('confirmText').textContent = `"${name}"ni sotuvchidan olmoqchimisiz?`;
+        document.getElementById('confirmOkBtn').onclick = executeDemote;
+        document.getElementById('confirmModal').classList.add('open');
+    }
+    function closeConfirm() {
+        document.getElementById('confirmModal').classList.remove('open');
+        pendingDemoteId = null;
+    }
+    async function executeDemote() {
+        const id = pendingDemoteId;
+        closeConfirm();
+        if (!id) return;
+        await doAction('demote', id);
+    }
+
+    async function handleDemote() {
+        const id = parseInt(document.getElementById('demoteUserId').value);
+        if (!id) { showToast('Foydalanuvchi ID kiriting!', 'error'); return; }
+        pendingDemoteId = id;
+        document.getElementById('confirmText').textContent = `#${id} foydalanuvchini sotuvchidan olmoqchimisiz?`;
+        document.getElementById('confirmOkBtn').onclick = async () => {
+            closeConfirm();
+            await doAction('demote', id);
+            document.getElementById('demoteUserId').value = '';
+        };
+        document.getElementById('confirmModal').classList.add('open');
+    }
+
+    // ── CORE ACTION (POST + action field) ──
+    async function doAction(action, userId, extra = {}) {
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ user_id: userId, action, ...extra })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Xatolik yuz berdi');
+
+            if (action === 'promote') {
+                showToast(data.message || 'Sotuvchiga aylantir ildi!', 'success');
+                addActivity('user-plus', 'purple', `#${userId} sotuvchi bo'ldi`);
+            } else {
+                showToast(data.message || 'Sotuvchidan olindi!', 'success');
+                addActivity('user-minus', 'red', `#${userId} sotuvchidan olindi`);
+            }
+            await loadUsers();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    // ── ACTIVITY ──
+    function addActivity(icon, color, text) {
+        const now = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        activityLog.unshift({ icon, color, text, time: now });
+        if (activityLog.length > 8) activityLog.pop();
+        const el = document.getElementById('activityList');
+        el.innerHTML = activityLog.map(a => `
+            <li class="activity-item">
+                <div class="activity-dot ${a.color}"><i class="fas fa-${a.icon}"></i></div>
+                <div class="activity-text">
+                    <strong>${esc(a.text)}</strong>
+                    <div class="activity-time"><i class="fas fa-clock"></i> ${a.time}</div>
+                </div>
+            </li>`).join('');
+    }
+
+    // ── NAVIGATION ──
+    function showPage(name, btn) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const section = document.getElementById('page-' + name);
+        if (section) section.classList.add('active');
+        if (btn) btn.classList.add('active');
+        const titles = {
+            dashboard: ['Dashboard',           'Umumiy statistika'],
+            users:     ['Foydalanuvchilar',    "Barcha ro'yxatdagi foydalanuvchilar"],
+            sellers:   ['Sotuvchilar',         'Faol sotuvchilar ro\'yxati'],
+            promote:   ['Sotuvchi boshqaruvi', "Sotuvchi qo'shish / olish"],
+        };
+        const [t, s] = titles[name] || ['', ''];
+        document.getElementById('pageTitle').textContent    = t;
+        document.getElementById('pageSubtitle').textContent = s;
+        document.getElementById('sidebar').classList.remove('open');
+    }
+
+    function refreshPage() {
+        showToast('Yangilanmoqda...', 'info');
+        loadUsers();
+    }
+
+    // ── HELPERS ──
+    function initials(name) { return name ? name.slice(0, 2).toUpperCase() : '?'; }
+    function esc(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function rndColor(id) { return avatarColors[(id || 0) % avatarColors.length]; }
+    function roleBadge(role, is_staff) {
+        if (is_staff || role === 'admin') return `<span class="badge badge-admin"><i class="fas fa-shield"></i> Admin</span>`;
+        if (role === 'seller')            return `<span class="badge badge-seller"><i class="fas fa-store"></i> Sotuvchi</span>`;
+        return `<span class="badge badge-customer"><i class="fas fa-user"></i> Xaridor</span>`;
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const el = document.getElementById('toast');
+        const icons = { success: 'check-circle', error: 'circle-exclamation', info: 'circle-info' };
+        el.innerHTML = `<i class="fas fa-${icons[type] || 'check-circle'}"></i> ${esc(msg)}`;
+        el.className = `toast show ${type}`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+    }
+</script>
+</body>
+</html>
