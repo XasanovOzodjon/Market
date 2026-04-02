@@ -33,6 +33,8 @@ async function loadCategories() {
 
 function renderCategoryList() {
     var list = document.getElementById("categoryList");
+    if (!list) return; // Element mavjud bo'lmasa (seller.html da yo'q)
+
     var html = '<li class="' + (!activeCategory ? "active" : "") + '" onclick="filterByCategory(null)">' +
         '<i class="fas fa-th-large"></i> Barchasi</li>';
 
@@ -54,6 +56,7 @@ function filterByCategory(slug) {
 // ═══════════════ MAHSULOTLAR ═══════════════
 async function loadProducts(url) {
     var content = document.getElementById("content");
+    if (!content) return;
     content.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
     try {

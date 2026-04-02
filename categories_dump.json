@@ -1,0 +1,182 @@
+[
+{
+  "model": "product.category",
+  "pk": 1,
+  "fields": {
+    "name": "Elektronika",
+    "slug": "elektronika",
+    "parent": null,
+    "category_type": "other",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 2,
+  "fields": {
+    "name": "Kiym kechak",
+    "slug": "kiym-kechak",
+    "parent": null,
+    "category_type": "clothing",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 3,
+  "fields": {
+    "name": "Iphone",
+    "slug": "iphone",
+    "parent": null,
+    "category_type": "phone",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 4,
+  "fields": {
+    "name": "Televizorlar",
+    "slug": "televizorlar",
+    "parent": null,
+    "category_type": "tv",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 5,
+  "fields": {
+    "name": "Noutbuklar",
+    "slug": "noutbuklar",
+    "parent": null,
+    "category_type": "laptop",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 6,
+  "fields": {
+    "name": "Oyoq kiyimlar",
+    "slug": "oyoq-kiyimlar",
+    "parent": null,
+    "category_type": "shoes",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 7,
+  "fields": {
+    "name": "Maishiy texnika",
+    "slug": "maishiy-texnika",
+    "parent": null,
+    "category_type": "appliance",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 8,
+  "fields": {
+    "name": "Avtomobillar",
+    "slug": "avtomobillar",
+    "parent": null,
+    "category_type": "auto",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 9,
+  "fields": {
+    "name": "Oziq-ovqat",
+    "slug": "oziq-ovqat",
+    "parent": null,
+    "category_type": "food",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 10,
+  "fields": {
+    "name": "Mebellar",
+    "slug": "mebellar",
+    "parent": null,
+    "category_type": "furniture",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 11,
+  "fields": {
+    "name": "Kitoblar",
+    "slug": "kitoblar",
+    "parent": null,
+    "category_type": "book",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+},
+{
+  "model": "product.category",
+  "pk": 12,
+  "fields": {
+    "name": "Hobbi va o'yinlar",
+    "slug": "hobbi",
+    "parent": null,
+    "category_type": "hobby",
+    "icon": "",
+    "description": "",
+    "is_active": true,
+    "order_num": 0,
+    "created_at": "2026-03-28"
+  }
+}
+]
