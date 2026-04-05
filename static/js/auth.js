@@ -71,11 +71,28 @@ function showAuthModal() {
 }
 
 function switchAuthTab(tab) {
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const pinSection = document.getElementById("pinSection");
+    
+    // Null tekshiruvi
+    if (!loginForm || !registerForm) {
+        console.error('Forms not found');
+        return;
+    }
+    
     document.getElementById("tabLogin").classList.toggle("active", tab === "login");
     document.getElementById("tabRegister").classList.toggle("active", tab === "register");
-    document.getElementById("loginForm").style.display = tab === "login" ? "flex" : "none";
-    document.getElementById("registerForm").style.display = tab === "register" ? "flex" : "none";
-    document.getElementById("pinSection").style.display = "none";
+    loginForm.style.display = tab === "login" ? "flex" : "none";
+    registerForm.style.display = tab === "register" ? "flex" : "none";
+    if (pinSection) {
+        pinSection.style.display = "none";
+    }
+}
+
+// Alias funksiya - HTML da switchTab ishlatilgan
+function switchTab(tab) {
+    switchAuthTab(tab);
 }
 
 // ── LOGIN ──
