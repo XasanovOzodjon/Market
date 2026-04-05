@@ -73,7 +73,7 @@ function showAuthModal() {
 function switchAuthTab(tab) {
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
-    const pinSection = document.getElementById("pinSection");
+    const pinStep = document.getElementById("pinStep");
     const tabLogin = document.getElementById("tabLogin");
     const tabRegister = document.getElementById("tabRegister");
     
@@ -82,7 +82,7 @@ function switchAuthTab(tab) {
         console.error('Forms not found:', {
             loginForm: !!loginForm,
             registerForm: !!registerForm,
-            pinSection: !!pinSection
+            pinStep: !!pinStep
         });
         return;
     }
@@ -105,9 +105,9 @@ function switchAuthTab(tab) {
     loginForm.style.display = tab === "login" ? "flex" : "none";
     registerForm.style.display = tab === "register" ? "flex" : "none";
     
-    // PIN section yashirish
-    if (pinSection) {
-        pinSection.style.display = "none";
+    // PIN step yashirish
+    if (pinStep) {
+        pinStep.style.display = "none";
     }
 }
 
@@ -122,20 +122,29 @@ async function handleLogin(e) {
     const username = document.getElementById("loginUsername").value.trim();
     const password = document.getElementById("loginPassword").value;
 
+    if (!username || !password) {
+        toast("Barcha maydonlarni to'ldiring", "error");
+        return;
+    }
+
     try {
-        const res = await api.post("/auth/login/", { username, password });
+        const res = await apiFetch("/auth/login/", {
+            method: "POST",
+            body: JSON.stringify({ username, password })
+        });
+        
         if (res.ok) {
             const data = await res.json();
             setTokens(data.access, data.refresh);
             await fetchCurrentUser();
-            closeModal("authModal");
             toast("Muvaffaqiyatli kirdingiz!", "success");
-            goHome();
+            window.location.href = "/";
         } else {
             const err = await res.json();
-            toast(err.detail || "Login xatolik!", "error");
+            toast(err.detail || err.message || "Login xatolik!", "error");
         }
     } catch (e) {
+        console.error("Login error:", e);
         toast("Server bilan bog'lanib bo'lmadi", "error");
     }
 }
@@ -148,29 +157,63 @@ function authLogin(e) {
 // ── REGISTER (1-qadam: email yuborish) ──
 async function handleRegister(e) {
     e.preventDefault();
-    if (regUid) return; // allaqachon yuborilgan
-
+    
     const username = document.getElementById("regUsername").value.trim();
     const email = document.getElementById("regEmail").value.trim();
     const password = document.getElementById("regPassword").value;
     const conform_password = document.getElementById("regConfirmPassword").value;
+
+    // Validatsiya
+    if (!username || !email || !password || !conform_password) {
+        toast("Barcha maydonlarni to'ldiring", "error");
+        return;
+    }
 
     if (password !== conform_password) {
         toast("Parollar mos kelmaydi!", "error");
         return;
     }
 
+    if (password.length < 8) {
+        toast("Parol kamida 8 ta belgidan iborat bo'lishi kerak", "error");
+        return;
+    }
+
     try {
-        const res = await api.post("/auth/registar/", { username, password, conform_password, email });
+        const res = await apiFetch("/auth/registar/", {
+            method: "POST",
+            body: JSON.stringify({ username, email, password, conform_password })
+        });
+        
         const data = await res.json();
+        
         if (res.ok) {
             regUid = data.uid;
-            document.getElementById("pinSection").style.display = "block";
+            
+            // PIN step ko'rsatish
+            const registerForm = document.getElementById("registerForm");
+            const pinStep = document.getElementById("pinStep");
+            const pinEmailDisplay = document.getElementById("pinEmailDisplay");
+            
+            if (registerForm) registerForm.style.display = "none";
+            if (pinStep) pinStep.style.display = "flex";
+            if (pinEmailDisplay) pinEmailDisplay.textContent = email;
+            
             toast("Emailingizga PIN kod yuborildi!", "success");
         } else {
-            toast(data.message || JSON.stringify(data), "error");
+            // Xatoliklarni ko'rsatish
+            if (data.username) {
+                toast("Username: " + (Array.isArray(data.username) ? data.username[0] : data.username), "error");
+            } else if (data.email) {
+                toast("Email: " + (Array.isArray(data.email) ? data.email[0] : data.email), "error");
+            } else if (data.password) {
+                toast("Parol: " + (Array.isArray(data.password) ? data.password[0] : data.password), "error");
+            } else {
+                toast(data.message || data.detail || "Ro'yxatdan o'tishda xatolik", "error");
+            }
         }
     } catch (e) {
+        console.error("Register error:", e);
         toast("Server bilan bog'lanib bo'lmadi", "error");
     }
 }
@@ -182,29 +225,50 @@ function authRegister(e) {
 
 // ── REGISTER (2-qadam: PIN tasdiqlash) ──
 async function handlePinCheck() {
-    const pincode = parseInt(document.getElementById("regPincode").value);
-    if (!regUid || !pincode) {
+    const pincodeInput = document.getElementById("regPincode");
+    if (!pincodeInput) {
+        toast("PIN input topilmadi", "error");
+        return;
+    }
+    
+    const pincode = parseInt(pincodeInput.value);
+    
+    if (!regUid) {
+        toast("Avval ro'yxatdan o'ting", "error");
+        return;
+    }
+    
+    if (!pincode || isNaN(pincode)) {
         toast("PIN kodni kiriting", "error");
         return;
     }
 
     try {
-        const res = await api.post("/auth/emailcheck/", { uid: regUid, pincode });
+        const res = await apiFetch("/auth/emailcheck/", {
+            method: "POST",
+            body: JSON.stringify({ uid: regUid, pincode })
+        });
+        
+        const data = await res.json();
+        
         if (res.ok) {
-            const data = await res.json();
             setTokens(data.access, data.refresh);
             regUid = null;
             await fetchCurrentUser();
-            closeModal("authModal");
             toast("Ro'yxatdan muvaffaqiyatli o'tdingiz!", "success");
-            goHome();
+            window.location.href = "/";
         } else {
-            const err = await res.json();
-            toast(err.message || "PIN xato", "error");
+            toast(data.message || data.detail || "PIN xato", "error");
         }
     } catch (e) {
+        console.error("PIN check error:", e);
         toast("Server bilan bog'lanib bo'lmadi", "error");
     }
+}
+
+// Alias - HTML da authPinCheck ishlatilgan
+function authPinCheck() {
+    return handlePinCheck();
 }
 
 // ── LOGOUT ──
@@ -229,17 +293,28 @@ async function handleLogout() {
 
 // ── GOOGLE AUTH ──
 async function googleAuth() {
+    console.log("Google auth started...");
     try {
-        const res = await api.post("/auth/google/");
+        const res = await apiFetch("/auth/google/", {
+            method: "POST"
+        });
+        
+        console.log("Response status:", res.status);
+        const data = await res.json();
+        console.log("Response data:", data);
+        
         if (res.ok) {
-            const data = await res.json();
             if (data.google_auth_link) {
+                console.log("Redirecting to:", data.google_auth_link);
                 window.location.href = data.google_auth_link;
+            } else {
+                toast("Google auth link topilmadi", "error");
             }
         } else {
-            toast("Google auth xatoligi", "error");
+            toast(data.detail || data.message || "Google auth xatoligi", "error");
         }
     } catch (e) {
+        console.error("Google auth error:", e);
         toast("Server bilan bog'lanib bo'lmadi", "error");
     }
 }
